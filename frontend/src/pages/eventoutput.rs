@@ -1,6 +1,6 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
-use shared::dto::{EventResponse, EventListResponse};
+use shared::dto::EventListResponse;
 use crate::services::api;
 use crate::routing::Route;
 

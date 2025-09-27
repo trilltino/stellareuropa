@@ -9,33 +9,20 @@ pub fn navbar() -> Html {
             <div class="nav-container">
                 <div class="nav-left">
                     <Link<Route> to={Route::Home} classes="nav-brand">
-                        {"Stellar Europe"}
+                        <img src="/brandlogo.png" alt="Stellar Europe Logo" class="brand-logo" />
                     </Link<Route>>
                 </div>
 
                 <div class="nav-center">
+                </div>
+
+                <div class="nav-right">
                     <div class="nav-links">
                         <Link<Route> to={Route::Home} classes="nav-link">
                             {"Home"}
                         </Link<Route>>
-                        <Link<Route> to={Route::About} classes="nav-link">
-                            {"About"}
-                        </Link<Route>>
-                        <Link<Route> to={Route::EventOutput} classes="nav-link">
+                        <Link<Route> to={Route::Events} classes="nav-link">
                             {"Events"}
-                        </Link<Route>>
-                    </div>
-                </div>
-
-                <div class="nav-right">
-                    <div class="nav-user-type">
-                        <span class="user-type-label">{"Join as:"}</span>
-                        <Link<Route> to={Route::Signup} classes="nav-link ambassador-link">
-                            {"Ambassador"}
-                        </Link<Route>>
-                        <span class="separator">{"|"}</span>
-                        <Link<Route> to={Route::Signup} classes="nav-link chapter-lead-link">
-                            {"Chapter Lead"}
                         </Link<Route>>
                     </div>
                 </div>
@@ -44,24 +31,23 @@ pub fn navbar() -> Html {
             <style>
                 {r#"
                 .navbar {
-                    background-color: black;
+                    background: transparent;
                     position: fixed;
                     top: 0;
                     left: 0;
                     right: 0;
                     height: 70px;
                     z-index: 1000;
-                    border-bottom: 2px solid #333;
-                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+                    backdrop-filter: blur(10px);
                 }
 
                 .nav-container {
-                    max-width: 1200px;
+                    display: flex;
+                    width: 1556.253px;
+                    justify-content: space-between;
+                    align-items: center;
                     margin: 0 auto;
                     height: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
                     padding: 0 20px;
                 }
 
@@ -70,6 +56,9 @@ pub fn navbar() -> Html {
                 }
 
                 .nav-brand {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
                     font-size: 1.8rem;
                     font-weight: bold;
                     color: #00d4ff;
@@ -78,6 +67,13 @@ pub fn navbar() -> Html {
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
+                }
+
+                .brand-logo {
+                    width: 83px;
+                    height: 83px;
+                    flex-shrink: 0;
+                    aspect-ratio: 1/1;
                 }
 
                 .nav-brand:hover {
@@ -100,6 +96,7 @@ pub fn navbar() -> Html {
                 .nav-link {
                     color: white;
                     text-decoration: none;
+                    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                     font-weight: 500;
                     font-size: 1rem;
                     padding: 8px 16px;
@@ -124,6 +121,39 @@ pub fn navbar() -> Html {
                     height: 2px;
                     background: linear-gradient(45deg, #00d4ff, #0099cc);
                     border-radius: 1px;
+                }
+
+                .nav-icon {
+                    height: 30px;
+                    width: auto;
+                    transition: all 0.3s ease;
+                }
+
+                .nav-icon:hover {
+                    transform: scale(1.1);
+                    filter: brightness(1.2);
+                }
+
+                .nav-join-us {
+                    display: flex;
+                    align-items: center;
+                    text-decoration: none;
+                    transition: all 0.3s ease;
+                }
+
+                .nav-join-us:hover {
+                    transform: translateY(-2px);
+                }
+
+                .nav-join-icon {
+                    height: 35px;
+                    width: auto;
+                    transition: all 0.3s ease;
+                }
+
+                .nav-join-icon:hover {
+                    transform: scale(1.05);
+                    filter: brightness(1.1);
                 }
 
                 .nav-right {

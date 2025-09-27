@@ -24,12 +24,11 @@ pub fn wallet_input(props: &WalletInputProps) -> Html {
     {
         let on_change = props.on_change.clone();
         let public_key = freighter.get_public_key();
-        use_effect_with_deps(move |public_key| {
+        use_effect_with(public_key, move |public_key| {
             if let Some(key) = public_key {
                 on_change.emit(key.clone());
             }
-            || {}
-        }, public_key);
+        });
     }
 
     let connect_freighter = {
@@ -39,50 +38,100 @@ pub fn wallet_input(props: &WalletInputProps) -> Html {
         })
     };
 
-    let button_text = match &*freighter.status {
-        FreighterStatus::NotInstalled => "❌ Install Freighter",
-        FreighterStatus::Disconnected => "🚀 Connect Freighter",
-        FreighterStatus::Connecting => "⏳ Connecting...",
-        FreighterStatus::Connected(_) => "✅ Connected",
-        FreighterStatus::Error(_) => "❌ Connection Failed",
+    let disconnect_freighter = {
+        let disconnect = freighter.disconnect.clone();
+        Callback::from(move |_| {
+            disconnect.emit(());
+        })
+    };
+
+    let (button_text, button_variant, button_disabled, show_disconnect) = match &*freighter.status {
+        FreighterStatus::NotInstalled => (
+            "Install Freighter",
+            ButtonVariant::Secondary,
+            false,
+            false
+        ),
+        FreighterStatus::Disconnected => (
+            "Connect Freighter",
+            ButtonVariant::Primary,
+            false,
+            false
+        ),
+        FreighterStatus::Connecting => (
+            "Connecting...",
+            ButtonVariant::Secondary,
+            true,
+            false
+        ),
+        FreighterStatus::Connected(_) => (
+            "Connected",
+            ButtonVariant::Success,
+            true,
+            true
+        ),
+        FreighterStatus::Error(_) => (
+            "Retry Connection",
+            ButtonVariant::Error,
+            false,
+            false
+        ),
     };
 
     let help_text = match &*freighter.status {
-        FreighterStatus::Connected(_) => Some("✅ Wallet connected via Freighter extension".to_string()),
+        FreighterStatus::Connected(key) => Some(format!("✅ Connected: {}...{}", &key[..8], &key[key.len()-8..])),
         FreighterStatus::Error(error) => Some(format!("❌ {}", error)),
+        FreighterStatus::NotInstalled => Some("⚠️ Install Freighter extension from Chrome Web Store".to_string()),
         _ => props.help_text.clone().or_else(|| {
-            Some("Your Stellar public key - use Freighter extension or enter manually".to_string())
+            Some("Enter your Stellar public key (starts with G) or connect via Freighter".to_string())
         }),
     };
 
-    let button_variant = match &*freighter.status {
-        FreighterStatus::Connected(_) => ButtonVariant::Success,
-        FreighterStatus::Error(_) => ButtonVariant::Error,
-        _ => ButtonVariant::Secondary,
+    // Validate Stellar public key format
+    let validation_error = if !props.value.is_empty() && props.required {
+        if !props.value.starts_with('G') || props.value.len() != 56 {
+            Some("Invalid Stellar public key format".to_string())
+        } else {
+            None
+        }
+    } else {
+        props.error.clone()
     };
 
     html! {
         <div class="wallet-input-container">
-            <Input
-                label={props.label.clone()}
-                value={props.value.clone()}
-                on_change={props.on_change.clone()}
-                placeholder="GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-                required={props.required}
-                error={props.error.clone()}
-                help_text={help_text}
-                class={freighter.is_connected().then(|| "wallet-input--connected".to_string())}
-            />
+            <div class="wallet-input-field">
+                <Input
+                    label={props.label.clone()}
+                    value={props.value.clone()}
+                    on_change={props.on_change.clone()}
+                    placeholder="GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                    required={props.required}
+                    error={validation_error}
+                    help_text={help_text}
+                    class={freighter.is_connected().then(|| "wallet-input--connected".to_string())}
+                />
+            </div>
 
             <div class="wallet-input-actions">
                 <Button
                     variant={button_variant}
                     onclick={connect_freighter}
-                    disabled={freighter.is_connected() || freighter.is_connecting()}
+                    disabled={button_disabled}
                     loading={freighter.is_connecting()}
                 >
                     {button_text}
                 </Button>
+
+                if show_disconnect {
+                    <Button
+                        variant={ButtonVariant::Secondary}
+                        onclick={disconnect_freighter}
+                        class="disconnect-button"
+                    >
+                        {"Disconnect"}
+                    </Button>
+                }
             </div>
         </div>
     }

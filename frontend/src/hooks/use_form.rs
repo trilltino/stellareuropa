@@ -2,6 +2,53 @@ use yew::prelude::*;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+// Common validation functions
+pub fn validate_email(email: &str) -> Option<String> {
+    if email.is_empty() {
+        return Some("Email is required".to_string());
+    }
+    if !email.contains('@') || !email.contains('.') {
+        return Some("Please enter a valid email address".to_string());
+    }
+    None
+}
+
+pub fn validate_username(username: &str) -> Option<String> {
+    if username.is_empty() {
+        return Some("Username is required".to_string());
+    }
+    if username.len() < 3 {
+        return Some("Username must be at least 3 characters".to_string());
+    }
+    if username.len() > 20 {
+        return Some("Username must be less than 20 characters".to_string());
+    }
+    if !username.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-') {
+        return Some("Username can only contain letters, numbers, underscores, and hyphens".to_string());
+    }
+    None
+}
+
+pub fn validate_stellar_address(address: &str) -> Option<String> {
+    if address.is_empty() {
+        return Some("Stellar wallet address is required".to_string());
+    }
+    if !address.starts_with('G') {
+        return Some("Stellar public key must start with 'G'".to_string());
+    }
+    if address.len() != 56 {
+        return Some("Stellar public key must be exactly 56 characters".to_string());
+    }
+    None
+}
+
+pub fn validate_required(value: &str, field_name: &str) -> Option<String> {
+    if value.trim().is_empty() {
+        return Some(format!("{} is required", field_name));
+    }
+    None
+}
+
 #[derive(Clone, PartialEq)]
 pub struct FormField {
     pub value: String,
@@ -116,6 +163,7 @@ impl FormHandle {
     }
 }
 
+#[hook]
 pub fn use_form() -> FormHandle {
     let fields = use_state(|| HashMap::new());
     let validators = Rc::new(HashMap::new());
@@ -126,6 +174,7 @@ pub fn use_form() -> FormHandle {
     }
 }
 
+#[hook]
 pub fn use_form_with_validators(
     validators: HashMap<String, Box<dyn Fn(&str) -> Option<String>>>
 ) -> FormHandle {
@@ -136,4 +185,16 @@ pub fn use_form_with_validators(
         fields,
         validators,
     }
+}
+
+// Convenience hook for signup form
+#[hook]
+pub fn use_signup_form() -> FormHandle {
+    let mut validators: HashMap<String, Box<dyn Fn(&str) -> Option<String>>> = HashMap::new();
+
+    validators.insert("username".to_string(), Box::new(validate_username));
+    validators.insert("email".to_string(), Box::new(validate_email));
+    validators.insert("wallet_address".to_string(), Box::new(validate_stellar_address));
+
+    use_form_with_validators(validators)
 }

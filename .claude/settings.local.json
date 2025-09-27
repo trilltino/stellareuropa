@@ -1,18 +1,26 @@
 {
   "permissions": {
     "allow": [
-      "Read(//c/Users/isich/xforcesolutions/**)",
-      "Read(//c/Users/isich/stellar_heads/**)",
-      "Bash(git restore:*)",
-      "Bash(cargo check:*)",
-      "Bash(docker-compose up:*)",
-      "Bash(docker:*)",
-      "Bash(cargo run:*)",
-      "Bash(cargo install:*)",
-      "Bash(sqlx migrate:*)",
+      "Bash(start:*)",
+      "Bash(dir \"C:\\Users\\isich\\stellareurope\\frontend\\src\")",
+      "Bash(dir \"C:\\Users\\isich\\stellareurope\\frontend\\src\\styles\")",
+      "Bash(curl -s \"http://127.0.0.1:8000/signup\")",
+      "Bash(claude mcp add:*)",
+      "Bash(trunk build:*)",
+      "Bash(trunk serve:*)",
+      "Bash(cargo:*)",
+      "Bash(dir \"C:\\Users\\isich\\stellareurope\\frontend\\assets\")",
+      "Bash(dir \"C:\\Users\\isich\\stellareurope\\frontend\\assets\\LandinngPage\")",
+      "Bash(dir:*)",
+      "Bash(claude mcp:*)",
+      "Read(//c/Users/isich/**)",
+      "Bash(curl:*)",
+      "Bash(trunk clean:*)",
+      "Bash(taskkill:*)",
       "Bash(pkill:*)",
-      "Bash(cargo build:*)",
-      "Bash(taskkill:*)"
+      "Bash(killall:*)",
+      "Bash(grep:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

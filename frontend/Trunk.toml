@@ -1,12 +1,13 @@
 [build]
 target = "index.html"
 dist = "dist"
+public_url = "/"
 
 [watch]
-watch = ["src", "assets"]
+watch = ["src", "index.html"]
 ignore = ["dist"]
 
 [serve]
-address = "127.0.0.1"
+addresses = ["127.0.0.1"]
 port = 8000
 open = false

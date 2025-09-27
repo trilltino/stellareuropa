@@ -22,8 +22,8 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
     <!-- Trunk Assets - Copy files to dist -->
-    <link data-trunk rel="copy-file" href="assets/brandlogo.png"/>
-    <link data-trunk rel="copy-file" href="assets/landingpage/landing_page.webp"/>
+    
+    
 
     <!-- Global Styles -->
     <style>
@@ -104,11 +104,11 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
     </style>
 
     <!-- Page-specific CSS -->
-    <link data-trunk rel="css" href="src/pages/signuppage.css" />
+    <link rel="stylesheet" href="/signuppage-1036733414813bd3.css" integrity="sha384-q1c/wcV/weKhLeTfggzoqwz7WWaSCnrcmP23n4gLP+gluRjVre+q+z/p7MFwGPDP"/>
 
     <!-- Link trunk assets -->
 
-<link rel="modulepreload" href="/frontend-e1bb277f627cfb40.js" crossorigin="anonymous" integrity="sha384-pjCTmGKvRXK2PZ7wfxawVkintCniNzCwus0idFM/5frHmqyC65x2muOY1s8A//kD"><link rel="preload" href="/frontend-e1bb277f627cfb40_bg.wasm" crossorigin="anonymous" integrity="sha384-D50ZfhhlwCEAo0nRjd2Tdg8+OfYR/Ivtl7e9q4BlzPr1MUtB9KnFpV+4Ieithy2t" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="/frontend-e1bb277f627cfb40.js" crossorigin="anonymous" integrity="sha384-pjCTmGKvRXK2PZ7wfxawVkintCniNzCwus0idFM/5frHmqyC65x2muOY1s8A//kD"><link rel="preload" href="/frontend-e1bb277f627cfb40_bg.wasm" crossorigin="anonymous" integrity="sha384-D50ZfhhlwCEAo0nRjd2Tdg8+OfYR/Ivtl7e9q4BlzPr1MUtB9KnFpV+4Ieithy2t" as="fetch" type="application/wasm"><link rel="modulepreload" href="/frontend-fbc120eef85fea11.js" crossorigin="anonymous" integrity="sha384-8TmRtVw/ToZ+fTiobijWPnGMvCROg0T/4OZsyYQin0q8R/WRZc5e+oON5ubyb1xV"><link rel="preload" href="/frontend-fbc120eef85fea11_bg.wasm" crossorigin="anonymous" integrity="sha384-bOs55qVeJpnBXqCWr5Rq0ITi/cLwbVBIQeolsvNCs/m9ymRn6pNYrkRHytvywZgI" as="fetch" type="application/wasm"></head>
 <body>
     <div id="app"></div>
 <script>"use strict";
@@ -240,5 +240,16 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
     new Client(url).start();
 
 })()
+</script>
+<script type="module">
+import init, * as bindings from '/frontend-fbc120eef85fea11.js';
+const wasm = await init({ module_or_path: '/frontend-fbc120eef85fea11_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
 </script></body>
 </html>

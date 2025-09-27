@@ -95,12 +95,30 @@ pub async fn create_event(
     // In a real app, this would come from authentication
     let organizer_id = 1;
 
-    // Parse the date string
-    let date = match req.date.parse::<DateTime<Utc>>() {
-        Ok(d) => d,
-        Err(e) => {
-            error!("Invalid date format: {:?}", e);
-            return (StatusCode::BAD_REQUEST, Json("Invalid date format".to_string()));
+    // Parse the date string - handle different formats
+    let date = if req.date.contains('T') && !req.date.ends_with('Z') && !req.date.contains('+') {
+        // HTML datetime-local format: "2025-09-05T08:33"
+        match chrono::NaiveDateTime::parse_from_str(&req.date, "%Y-%m-%dT%H:%M") {
+            Ok(naive_dt) => naive_dt.and_utc(), // Convert to UTC
+            Err(_) => {
+                // Try with seconds: "2025-09-05T08:33:00"
+                match chrono::NaiveDateTime::parse_from_str(&req.date, "%Y-%m-%dT%H:%M:%S") {
+                    Ok(naive_dt) => naive_dt.and_utc(),
+                    Err(e) => {
+                        error!("Invalid date format: {:?}", e);
+                        return (StatusCode::BAD_REQUEST, Json("Invalid date format".to_string()));
+                    }
+                }
+            }
+        }
+    } else {
+        // Try parsing as full UTC datetime
+        match req.date.parse::<DateTime<Utc>>() {
+            Ok(d) => d,
+            Err(e) => {
+                error!("Invalid date format: {:?}", e);
+                return (StatusCode::BAD_REQUEST, Json("Invalid date format".to_string()));
+            }
         }
     };
 

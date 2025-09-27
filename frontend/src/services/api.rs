@@ -1,10 +1,7 @@
 use reqwest::Client;
 use shared::dto::{SignUpRequest, SignUpResponse, EventRequest, EventListResponse};
-use wasm_bindgen_futures::JsFuture;
-use wasm_bindgen::JsValue;
-use serde_wasm_bindgen::{to_value, from_value};
 
-const API_BASE_URL: &str = "http://127.0.0.1:8081/api";
+const API_BASE_URL: &str = "http://127.0.0.1:8080/api";
 
 pub async fn signup(request: SignUpRequest) -> Result<SignUpResponse, String> {
     let client = Client::new();
@@ -102,7 +99,7 @@ pub async fn list_events(limit: Option<u32>, offset: Option<u32>) -> Result<Even
 pub async fn health_check() -> Result<String, String> {
     let client = Client::new();
 
-    match client.get("http://127.0.0.1:8081/health").send().await {
+    match client.get("http://127.0.0.1:8080/health").send().await {
         Ok(response) => {
             if response.status().is_success() {
                 match response.text().await {

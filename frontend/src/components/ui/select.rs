@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use web_sys::HtmlSelectElement;
+use web_sys::HtmlInputElement;
 
 #[derive(Clone, PartialEq)]
 pub struct SelectOption {
@@ -53,8 +53,8 @@ pub fn select(props: &SelectProps) -> Html {
     let on_change = {
         let on_change = props.on_change.clone();
         Callback::from(move |e: Event| {
-            let select: HtmlSelectElement = e.target_unchecked_into();
-            on_change.emit(select.value());
+            let input: HtmlInputElement = e.target_unchecked_into();
+            on_change.emit(input.value());
         })
     };
 

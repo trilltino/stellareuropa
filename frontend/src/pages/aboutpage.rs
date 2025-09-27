@@ -104,7 +104,7 @@ pub fn about_page() -> Html {
                         <Link<Route> to={Route::Signup} classes="cta-button secondary-cta">
                             {"Apply as Chapter Lead"}
                         </Link<Route>>
-                        <Link<Route> to={Route::EventOutput} classes="cta-button tertiary-cta">
+                        <Link<Route> to={Route::Events} classes="cta-button tertiary-cta">
                             {"Find Events Near You"}
                         </Link<Route>>
                     </div>
