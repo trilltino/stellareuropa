@@ -61,7 +61,7 @@ pub fn select(props: &SelectProps) -> Html {
     let select_class = classes!(
         "ui-select",
         props.error.as_ref().map(|_| "ui-select--error"),
-        props.disabled.then(|| "ui-select--disabled"),
+        props.disabled.then_some("ui-select--disabled"),
         props.class.clone()
     );
 

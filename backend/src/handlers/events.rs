@@ -1,14 +1,16 @@
 use crate::database::connection::DbPool;
-use crate::database::repositories::{EventRepository, UserRepository};
+use crate::database::repositories::{EventRepository, UserRepository, CreateEventParams, UpdateKpiParams, UpdatePostEventParams};
 use axum::{
-    extract::{Json, State, Query},
+    extract::{Json, State, Query, Path},
     http::StatusCode,
 };
-use tracing::{info, error};
-use shared::dto::{EventRequest, EventResponse, EventListResponse, EventType, StrategicFocusArea, KPIEstimates};
+use tracing::{info, error, debug};
+use shared::dto::{EventRequest, EventResponse, EventListResponse, EventType, StrategicFocusArea, KPIEstimates, PostEventReport, EventCosts, EventEvaluation};
 use crate::database::models::Event;
 use serde::Deserialize;
 use chrono::{DateTime, Utc};
+use bigdecimal::BigDecimal;
+use std::str::FromStr;
 
 #[derive(Deserialize)]
 pub struct ListEventsQuery {
@@ -48,6 +50,44 @@ fn create_event_response(event: &Event, organizer_username: &str) -> EventRespon
         social_growth_target: event.social_growth_target.map(|v| v as u32),
     };
 
+    let post_event_report = if event.actual_attendance.is_some() || event.social_traction.is_some()
+                              || event.content_created.is_some() || event.active_developers_summary.is_some()
+                              || event.qualitative_feedback.is_some() {
+        Some(PostEventReport {
+            actual_attendance: event.actual_attendance.map(|v| v as u32),
+            social_traction: event.social_traction.clone(),
+            content_created: event.content_created.clone(),
+            active_developers_summary: event.active_developers_summary.clone(),
+            qualitative_feedback: event.qualitative_feedback.clone(),
+        })
+    } else {
+        None
+    };
+
+    let event_costs = if event.sponsorship_cost.is_some() || event.travel_cost.is_some()
+                       || event.awards_cost.is_some() || event.other_costs.is_some() {
+        Some(EventCosts {
+            sponsorship_cost: event.sponsorship_cost.as_ref().and_then(|bd| bd.to_string().parse::<f64>().ok()),
+            travel_cost: event.travel_cost.as_ref().and_then(|bd| bd.to_string().parse::<f64>().ok()),
+            awards_cost: event.awards_cost.as_ref().and_then(|bd| bd.to_string().parse::<f64>().ok()),
+            other_costs: event.other_costs.as_ref().and_then(|bd| bd.to_string().parse::<f64>().ok()),
+        })
+    } else {
+        None
+    };
+
+    let event_evaluation = if event.project_submissions.is_some() || event.promotion_reach.is_some()
+                            || event.developer_integration.is_some() || event.host_summary.is_some() {
+        Some(EventEvaluation {
+            project_submissions: event.project_submissions.map(|v| v as u32),
+            promotion_reach: event.promotion_reach.clone(),
+            developer_integration: event.developer_integration.clone(),
+            host_summary: event.host_summary.clone(),
+        })
+    } else {
+        None
+    };
+
     EventResponse {
         id: event.id.to_string(),
         title: event.title.clone(),
@@ -67,33 +107,41 @@ fn create_event_response(event: &Event, organizer_username: &str) -> EventRespon
         quarterly_goals: event.quarterly_goals.clone(),
         strategic_purpose: event.strategic_purpose.clone(),
         success_metrics: event.success_metrics.clone(),
+        post_event_report,
+        event_costs,
+        event_evaluation,
+        event_images: event.event_images.clone(),
     }
 }
 
 pub async fn create_event(
+    current_user: crate::extractors::current_user::CurrentUser,
     State(pool): State<DbPool>,
     Json(req): Json<EventRequest>,
 ) -> (StatusCode, Json<String>) {
-    println!("🎪 NEW EVENT CREATION REQUEST");
-    println!("   Title: {}", req.title);
-    println!("   Type: {:?}", req.event_type);
-    println!("   Date: {}", req.date);
-    println!("   Location: {}", req.location);
-    println!("   Contact: {}", req.contact_email);
-    println!("   Strategic Focus Areas: {:?}", req.strategic_focus_areas);
-    println!("   Target Audience: {}", req.target_audience);
-    println!("   Strategic Purpose: {}", req.strategic_purpose);
-    println!("   KPI Estimates:");
-    println!("     - Monthly Active Ambassadors: {:?}", req.kpi_estimates.monthly_active_ambassadors);
-    println!("     - Monthly Active Accounts: {:?}", req.kpi_estimates.monthly_active_accounts);
-    println!("     - SCF Referrals: {:?}", req.kpi_estimates.scf_referrals);
-    println!("   ────────────────────────────────────");
+    let organizer_id = current_user.0.user_id;
 
-    info!("Received event creation request: title={}", req.title);
+    info!(
+        "Received event creation request from user {}: title={}",
+        organizer_id, req.title
+    );
 
-    // For now, we'll use a placeholder organizer_id of 1
-    // In a real app, this would come from authentication
-    let organizer_id = 1;
+    debug!("[EVENT] NEW EVENT CREATION REQUEST");
+    debug!("   User ID: {}", organizer_id);
+    debug!("   Username: {}", current_user.0.username);
+    debug!("   Title: {}", req.title);
+    debug!("   Type: {:?}", req.event_type);
+    debug!("   Date: {}", req.date);
+    debug!("   Location: {}", req.location);
+    debug!("   Contact: {}", req.contact_email);
+    debug!("   Strategic Focus Areas: {:?}", req.strategic_focus_areas);
+    debug!("   Target Audience: {}", req.target_audience);
+    debug!("   Strategic Purpose: {}", req.strategic_purpose);
+    debug!("   KPI Estimates:");
+    debug!("     - Monthly Active Ambassadors: {:?}", req.kpi_estimates.monthly_active_ambassadors);
+    debug!("     - Monthly Active Accounts: {:?}", req.kpi_estimates.monthly_active_accounts);
+    debug!("     - SCF Referrals: {:?}", req.kpi_estimates.scf_referrals);
+    debug!("   ────────────────────────────────────");
 
     // Parse the date string - handle different formats
     let date = if req.date.contains('T') && !req.date.ends_with('Z') && !req.date.contains('+') {
@@ -128,43 +176,54 @@ pub async fn create_event(
         .map(|area| area.to_string())
         .collect();
 
-    match EventRepository::create_event(
-        &pool,
-        &req.title,
-        &req.description,
-        &event_type_str,
+    // Build parameter struct instead of passing 36 individual parameters
+    let params = CreateEventParams {
+        title: &req.title,
+        description: &req.description,
+        event_type: &event_type_str,
         date,
-        &req.location,
-        req.max_participants.map(|p| p as i32),
-        req.registration_required,
-        &req.contact_email,
-        req.external_link.as_deref(),
+        location: &req.location,
+        max_participants: req.max_participants.map(|p| p as i32),
+        registration_required: req.registration_required,
+        contact_email: &req.contact_email,
+        external_link: req.external_link.as_deref(),
         organizer_id,
-        Some(&strategic_focus_areas_strings),
-        req.kpi_estimates.monthly_active_ambassadors.map(|v| v as i32),
-        req.kpi_estimates.monthly_active_accounts.map(|v| v as i32),
-        req.kpi_estimates.scf_referrals.map(|v| v as i32),
-        req.kpi_estimates.content_produced.map(|v| v as i32),
-        req.kpi_estimates.expected_attendance.map(|v| v as i32),
-        req.kpi_estimates.social_growth_target.map(|v| v as i32),
-        &req.target_audience,
-        &req.quarterly_goals,
-        &req.strategic_purpose,
-        req.success_metrics.as_deref(),
-    ).await {
+        strategic_focus_areas: Some(&strategic_focus_areas_strings),
+        target_audience: &req.target_audience,
+        quarterly_goals: &req.quarterly_goals,
+        strategic_purpose: &req.strategic_purpose,
+        success_metrics: req.success_metrics.as_deref(),
+        monthly_active_ambassadors: req.kpi_estimates.monthly_active_ambassadors.map(|v| v as i32),
+        monthly_active_accounts: req.kpi_estimates.monthly_active_accounts.map(|v| v as i32),
+        scf_referrals: req.kpi_estimates.scf_referrals.map(|v| v as i32),
+        content_produced: req.kpi_estimates.content_produced.map(|v| v as i32),
+        expected_attendance: req.kpi_estimates.expected_attendance.map(|v| v as i32),
+        social_growth_target: req.kpi_estimates.social_growth_target.map(|v| v as i32),
+        actual_attendance: req.post_event_report.as_ref().and_then(|r| r.actual_attendance).map(|v| v as i32),
+        social_traction: req.post_event_report.as_ref().and_then(|r| r.social_traction.as_deref()),
+        content_created: req.post_event_report.as_ref().and_then(|r| r.content_created.as_deref()),
+        active_developers_summary: req.post_event_report.as_ref().and_then(|r| r.active_developers_summary.as_deref()),
+        qualitative_feedback: req.post_event_report.as_ref().and_then(|r| r.qualitative_feedback.as_deref()),
+        sponsorship_cost: req.event_costs.as_ref().and_then(|c| c.sponsorship_cost).and_then(|v| BigDecimal::from_str(&v.to_string()).ok()),
+        travel_cost: req.event_costs.as_ref().and_then(|c| c.travel_cost).and_then(|v| BigDecimal::from_str(&v.to_string()).ok()),
+        awards_cost: req.event_costs.as_ref().and_then(|c| c.awards_cost).and_then(|v| BigDecimal::from_str(&v.to_string()).ok()),
+        other_costs: req.event_costs.as_ref().and_then(|c| c.other_costs).and_then(|v| BigDecimal::from_str(&v.to_string()).ok()),
+        project_submissions: req.event_evaluation.as_ref().and_then(|e| e.project_submissions).map(|v| v as i32),
+        promotion_reach: req.event_evaluation.as_ref().and_then(|e| e.promotion_reach.as_deref()),
+        developer_integration: req.event_evaluation.as_ref().and_then(|e| e.developer_integration.as_deref()),
+        host_summary: req.event_evaluation.as_ref().and_then(|e| e.host_summary.as_deref()),
+        event_images: req.event_images.as_ref(),
+    };
+
+    match EventRepository::create_event(&pool, params).await {
         Ok(event) => {
-            println!("✅ EVENT CREATED SUCCESSFULLY!");
-            println!("   Event ID: {}", event.id);
-            println!("   Title: {}", event.title);
-            println!("   Date: {}", event.date);
-            println!("   🎉 Event is ready for the community!");
-            println!("   ════════════════════════════════════");
+            info!("Event created successfully: {} (ID: {})", event.title, event.id);
+            debug!("Event date: {}, location: {}", event.date, event.location);
             (StatusCode::CREATED, Json("Event created successfully!".to_string()))
         }
         Err(e) => {
-            println!("❌ EVENT CREATION FAILED: {}", e);
-            error!("Database error creating event: {:?}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, Json(format!("Failed to create event: {}", e)))
+            error!("Failed to create event: {:?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(format!("Failed to create event: {e}")))
         }
     }
 }
@@ -173,23 +232,51 @@ pub async fn list_events(
     State(pool): State<DbPool>,
     Query(params): Query<ListEventsQuery>,
 ) -> (StatusCode, Json<EventListResponse>) {
-    println!("📋 EVENTS LIST REQUEST (limit: {:?}, offset: {:?})", params.limit, params.offset);
-    info!("Received events list request");
+    debug!("Events list request (limit: {:?}, offset: {:?})", params.limit, params.offset);
 
     match EventRepository::list_events(&pool, params.limit, params.offset).await {
         Ok(events) => {
-            let mut event_responses = Vec::new();
+            // Performance optimization: Batch load all organizers to prevent N+1 query problem
+            // Instead of 1 query for events + N queries for each organizer (N+1 total),
+            // we do 1 query for events + 1 batch query for all organizers (2 total)
 
-            for event in events {
-                // Get organizer username
-                let organizer_username = match UserRepository::find_by_id(&pool, event.organizer_id).await {
-                    Ok(Some(user)) => user.username,
-                    Ok(None) => "Unknown".to_string(),
-                    Err(_) => "Unknown".to_string(),
-                };
+            // Step 1: Collect unique organizer IDs
+            let organizer_ids: Vec<i32> = events
+                .iter()
+                .map(|event| event.organizer_id)
+                .collect::<std::collections::HashSet<_>>()  // Remove duplicates
+                .into_iter()
+                .collect();
 
-                event_responses.push(create_event_response(&event, &organizer_username));
-            }
+            // Step 2: Batch fetch all organizers in one query
+            let organizers = match UserRepository::find_by_ids(&pool, &organizer_ids).await {
+                Ok(users) => users,
+                Err(e) => {
+                    error!("Failed to batch load organizers: {:?}", e);
+                    Vec::new()  // Continue with empty organizers if batch load fails
+                }
+            };
+
+            // Step 3: Create HashMap for O(1) username lookups
+            let organizer_map: std::collections::HashMap<i32, String> = organizers
+                .into_iter()
+                .map(|user| (user.id, user.username))
+                .collect();
+
+            debug!("Loaded {} unique organizers for {} events", organizer_map.len(), events.len());
+
+            // Step 4: Map events to responses using the HashMap (no additional queries)
+            let event_responses: Vec<EventResponse> = events
+                .iter()
+                .map(|event| {
+                    let organizer_username = organizer_map
+                        .get(&event.organizer_id)
+                        .cloned()
+                        .unwrap_or_else(|| "Unknown".to_string());
+
+                    create_event_response(event, &organizer_username)
+                })
+                .collect();
 
             let response = EventListResponse {
                 total: event_responses.len(),
@@ -205,6 +292,81 @@ pub async fn list_events(
                 events: vec![],
             };
             (StatusCode::INTERNAL_SERVER_ERROR, Json(response))
+        }
+    }
+}
+
+pub async fn update_event_kpi(
+    State(pool): State<DbPool>,
+    Path(event_id): Path<i32>,
+    Json(req): Json<EventRequest>,
+) -> (StatusCode, Json<String>) {
+    debug!("Event KPI update request: event_id={}, focus_areas={:?}", event_id, req.strategic_focus_areas);
+
+    let strategic_focus_areas_strings: Vec<String> = req.strategic_focus_areas.iter()
+        .map(|area| area.to_string())
+        .collect();
+
+    let params = UpdateKpiParams {
+        strategic_focus_areas: Some(&strategic_focus_areas_strings),
+        monthly_active_ambassadors: req.kpi_estimates.monthly_active_ambassadors.map(|v| v as i32),
+        monthly_active_accounts: req.kpi_estimates.monthly_active_accounts.map(|v| v as i32),
+        scf_referrals: req.kpi_estimates.scf_referrals.map(|v| v as i32),
+        content_produced: req.kpi_estimates.content_produced.map(|v| v as i32),
+        expected_attendance: req.kpi_estimates.expected_attendance.map(|v| v as i32),
+        social_growth_target: req.kpi_estimates.social_growth_target.map(|v| v as i32),
+        target_audience: &req.target_audience,
+        quarterly_goals: &req.quarterly_goals,
+        strategic_purpose: &req.strategic_purpose,
+        success_metrics: req.success_metrics.as_deref(),
+    };
+
+    match EventRepository::update_event_kpi(&pool, event_id, params).await {
+        Ok(event) => {
+            info!("Event KPI updated successfully: {} (ID: {})", event.title, event.id);
+            (StatusCode::OK, Json("Event KPI updated successfully!".to_string()))
+        }
+        Err(e) => {
+            error!("Failed to update event KPI: {:?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(format!("Failed to update event KPI: {e}")))
+        }
+    }
+}
+
+pub async fn update_post_event_data(
+    State(pool): State<DbPool>,
+    Path(event_id): Path<i32>,
+    Json(req): Json<EventRequest>,
+) -> (StatusCode, Json<String>) {
+    debug!("Post-event data update: event_id={}, has_report={}, has_costs={}, has_eval={}, images={}",
+        event_id, req.post_event_report.is_some(), req.event_costs.is_some(),
+        req.event_evaluation.is_some(), req.event_images.as_ref().map(|v| v.len()).unwrap_or(0));
+
+    let params = UpdatePostEventParams {
+        actual_attendance: req.post_event_report.as_ref().and_then(|r| r.actual_attendance).map(|v| v as i32),
+        social_traction: req.post_event_report.as_ref().and_then(|r| r.social_traction.as_deref()),
+        content_created: req.post_event_report.as_ref().and_then(|r| r.content_created.as_deref()),
+        active_developers_summary: req.post_event_report.as_ref().and_then(|r| r.active_developers_summary.as_deref()),
+        qualitative_feedback: req.post_event_report.as_ref().and_then(|r| r.qualitative_feedback.as_deref()),
+        sponsorship_cost: req.event_costs.as_ref().and_then(|c| c.sponsorship_cost).and_then(|v| BigDecimal::from_str(&v.to_string()).ok()),
+        travel_cost: req.event_costs.as_ref().and_then(|c| c.travel_cost).and_then(|v| BigDecimal::from_str(&v.to_string()).ok()),
+        awards_cost: req.event_costs.as_ref().and_then(|c| c.awards_cost).and_then(|v| BigDecimal::from_str(&v.to_string()).ok()),
+        other_costs: req.event_costs.as_ref().and_then(|c| c.other_costs).and_then(|v| BigDecimal::from_str(&v.to_string()).ok()),
+        project_submissions: req.event_evaluation.as_ref().and_then(|e| e.project_submissions).map(|v| v as i32),
+        promotion_reach: req.event_evaluation.as_ref().and_then(|e| e.promotion_reach.as_deref()),
+        developer_integration: req.event_evaluation.as_ref().and_then(|e| e.developer_integration.as_deref()),
+        host_summary: req.event_evaluation.as_ref().and_then(|e| e.host_summary.as_deref()),
+        event_images: req.event_images.as_ref(),
+    };
+
+    match EventRepository::update_post_event_data(&pool, event_id, params).await {
+        Ok(event) => {
+            info!("Post-event data updated successfully: {} (ID: {})", event.title, event.id);
+            (StatusCode::OK, Json("Post-event data updated successfully!".to_string()))
+        }
+        Err(e) => {
+            error!("Failed to update post-event data: {:?}", e);
+            (StatusCode::INTERNAL_SERVER_ERROR, Json(format!("Failed to update post-event data: {e}")))
         }
     }
 }

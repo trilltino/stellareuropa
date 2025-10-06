@@ -2,15 +2,82 @@ use yew::prelude::*;
 use yew_router::prelude::*;
 use crate::routing::Route;
 
+#[derive(Properties, PartialEq)]
+pub struct NavbarProps {
+    #[prop_or_default]
+    pub class: Classes,
+
+    #[prop_or(true)]
+    pub show_signup: bool,
+}
+
 #[function_component(Navbar)]
-pub fn navbar() -> Html {
+pub fn navbar(props: &NavbarProps) -> Html {
+    let mut navbar_classes = Classes::from("navbar");
+    navbar_classes.extend(props.class.clone());
+
+    let dropdown_open = use_state(|| false);
+    let management_dropdown_open = use_state(|| false);
+
+    let toggle_dropdown = {
+        let dropdown_open = dropdown_open.clone();
+        let management_dropdown_open = management_dropdown_open.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            management_dropdown_open.set(false); // Close other dropdown
+            dropdown_open.set(!*dropdown_open);
+        })
+    };
+
+    let close_dropdown = {
+        let dropdown_open = dropdown_open.clone();
+        Callback::from(move |_| {
+            dropdown_open.set(false);
+        })
+    };
+
+    let toggle_management_dropdown = {
+        let management_dropdown_open = management_dropdown_open.clone();
+        let dropdown_open = dropdown_open.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            dropdown_open.set(false); // Close other dropdown
+            management_dropdown_open.set(!*management_dropdown_open);
+        })
+    };
+
+    let close_management_dropdown = {
+        let management_dropdown_open = management_dropdown_open.clone();
+        Callback::from(move |_| {
+            management_dropdown_open.set(false);
+        })
+    };
+
+    // Try to get auth context (may not be available in all contexts)
+    let auth = use_context::<crate::contexts::AuthContextType>();
+
+    // Check current route
+    let current_route = use_route::<Route>();
+    let is_homepage = matches!(current_route, Some(Route::Home));
+
     html! {
-        <nav class="navbar">
+        <nav class={navbar_classes}>
             <div class="nav-container">
                 <div class="nav-left">
                     <Link<Route> to={Route::Home} classes="nav-brand">
                         <img src="/brandlogo.png" alt="Stellar Europe Logo" class="brand-logo" />
                     </Link<Route>>
+                    <div class="social-icons">
+                        <a href="https://x.com/StellarEuropa" target="_blank" rel="noopener noreferrer" class="social-link">
+                            <img src="x-logo.svg" alt="X/Twitter" class="social-icon" />
+                        </a>
+                        <a href="https://discord.com/invite/stellardev" target="_blank" rel="noopener noreferrer" class="social-link">
+                            <img src="discord-logo.svg" alt="Discord" class="social-icon" />
+                        </a>
+                        <a href="https://www.youtube.com/@StellarEuropa" target="_blank" rel="noopener noreferrer" class="social-link">
+                            <img src="youtube-logo.svg" alt="YouTube" class="social-icon" />
+                        </a>
+                    </div>
                 </div>
 
                 <div class="nav-center">
@@ -18,258 +85,165 @@ pub fn navbar() -> Html {
 
                 <div class="nav-right">
                     <div class="nav-links">
-                        <Link<Route> to={Route::Home} classes="nav-link">
-                            {"Home"}
+                        // Visitor-only links (always visible)
+                        if !is_homepage {
+                            <Link<Route> to={Route::Home} classes="nav-link">
+                                {"Home"}
+                            </Link<Route>>
+                        }
+
+                        // Ambassadors dropdown (always visible)
+                        <div class="nav-dropdown">
+                            <button class="nav-link dropdown-toggle" onclick={toggle_dropdown.clone()}>
+                                {"Ambassadors ▾"}
+                            </button>
+                            {
+                                if *dropdown_open {
+                                    html! {
+                                        <div class="dropdown-menu dropdown-menu-open">
+                                            <div onclick={close_dropdown.clone()}>
+                                                <Link<Route> to={Route::About} classes="dropdown-item">
+                                                    {"About Us"}
+                                                </Link<Route>>
+                                            </div>
+                                            <div onclick={close_dropdown.clone()}>
+                                                <Link<Route> to={Route::Chapters} classes="dropdown-item">
+                                                    {"Chapters"}
+                                                </Link<Route>>
+                                            </div>
+                                            <div onclick={close_dropdown.clone()}>
+                                                <Link<Route> to={Route::XFIncubator} classes="dropdown-item">
+                                                    {"XF Incubator"}
+                                                </Link<Route>>
+                                            </div>
+                                        </div>
+                                    }
+                                } else {
+                                    html! {}
+                                }
+                            }
+                        </div>
+
+                        // Management dropdown (authenticated users only)
+                        {
+                            if let Some(auth_ctx) = &auth {
+                                if auth_ctx.state.is_authenticated {
+                                    html! {
+                                        <div class="nav-dropdown">
+                                            <button class="nav-link dropdown-toggle" onclick={toggle_management_dropdown.clone()}>
+                                                {"Management ▾"}
+                                            </button>
+                                            {
+                                                if *management_dropdown_open {
+                                                    html! {
+                                                        <div class="dropdown-menu dropdown-menu-open">
+                                                            <div onclick={close_management_dropdown.clone()}>
+                                                                <Link<Route> to={Route::Events} classes="dropdown-item">
+                                                                    {"Events"}
+                                                                </Link<Route>>
+                                                            </div>
+                                                            <div onclick={close_management_dropdown.clone()}>
+                                                                <Link<Route> to={Route::RegionPlanning} classes="dropdown-item">
+                                                                    {"Region Planning"}
+                                                                </Link<Route>>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                } else {
+                                                    html! {}
+                                                }
+                                            }
+                                        </div>
+                                    }
+                                } else {
+                                    html! {}
+                                }
+                            } else {
+                                html! {}
+                            }
+                        }
+
+                        <Link<Route> to={Route::ProjectShowcase} classes="nav-link">
+                            {"Projects"}
                         </Link<Route>>
-                        <Link<Route> to={Route::Events} classes="nav-link">
-                            {"Events"}
-                        </Link<Route>>
+
+                        // Authentication state
+                        {
+                            if let Some(auth_ctx) = auth {
+                                if auth_ctx.state.is_authenticated {
+                                    // Show logged-in state
+                                    if let Some(user) = &auth_ctx.state.user {
+                                        html! {
+                                            <div class="nav-user-compact">
+                                                <div class="nav-user-avatar" title={user.username.clone()}>
+                                                    {&user.username.chars().next().unwrap_or('U').to_uppercase().to_string()}
+                                                </div>
+                                                {
+                                                    if user.role == "chapter_lead" || user.role == "admin" {
+                                                        html! {
+                                                            <div class="nav-role-icon" title={user.role.clone()}>
+                                                                {"⭐"}
+                                                            </div>
+                                                        }
+                                                    } else {
+                                                        html! {}
+                                                    }
+                                                }
+                                                <button
+                                                    class="nav-logout-icon"
+                                                    title="Logout"
+                                                    onclick={
+                                                        let auth = auth_ctx.clone();
+                                                        Callback::from(move |_| {
+                                                            auth.logout.emit(());
+                                                        })
+                                                    }
+                                                >
+                                                    {"⎋"}
+                                                </button>
+                                            </div>
+                                        }
+                                    } else {
+                                        html! {}
+                                    }
+                                } else {
+                                    // Show login/signup links
+                                    html! {
+                                        <>
+                                            <Link<Route> to={Route::Login} classes="nav-link login-link">
+                                                {"Login"}
+                                            </Link<Route>>
+                                            {if props.show_signup {
+                                                html! {
+                                                    <Link<Route> to={Route::Signup} classes="nav-link signup-link">
+                                                        {"Sign Up"}
+                                                    </Link<Route>>
+                                                }
+                                            } else { html! {} }}
+                                        </>
+                                    }
+                                }
+                            } else {
+                                // No auth context (fallback)
+                                html! {
+                                    <>
+                                        <Link<Route> to={Route::Login} classes="nav-link login-link">
+                                            {"Login"}
+                                        </Link<Route>>
+                                        {if props.show_signup {
+                                            html! {
+                                                <Link<Route> to={Route::Signup} classes="nav-link signup-link">
+                                                    {"Sign Up"}
+                                                </Link<Route>>
+                                            }
+                                        } else { html! {} }}
+                                    </>
+                                }
+                            }
+                        }
                     </div>
                 </div>
             </div>
-
-            <style>
-                {r#"
-                .navbar {
-                    background: transparent;
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 70px;
-                    z-index: 1000;
-                    backdrop-filter: blur(10px);
-                }
-
-                .nav-container {
-                    display: flex;
-                    width: 1556.253px;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin: 0 auto;
-                    height: 100%;
-                    padding: 0 20px;
-                }
-
-                .nav-left {
-                    flex: 1;
-                }
-
-                .nav-brand {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    font-size: 1.8rem;
-                    font-weight: bold;
-                    color: #00d4ff;
-                    text-decoration: none;
-                    background: linear-gradient(45deg, #00d4ff, #0099cc);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
-                }
-
-                .brand-logo {
-                    width: 83px;
-                    height: 83px;
-                    flex-shrink: 0;
-                    aspect-ratio: 1/1;
-                }
-
-                .nav-brand:hover {
-                    transform: scale(1.05);
-                    transition: transform 0.3s ease;
-                }
-
-                .nav-center {
-                    flex: 1;
-                    display: flex;
-                    justify-content: center;
-                }
-
-                .nav-links {
-                    display: flex;
-                    gap: 30px;
-                    align-items: center;
-                }
-
-                .nav-link {
-                    color: white;
-                    text-decoration: none;
-                    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    font-weight: 500;
-                    font-size: 1rem;
-                    padding: 8px 16px;
-                    border-radius: 6px;
-                    transition: all 0.3s ease;
-                    position: relative;
-                }
-
-                .nav-link:hover {
-                    color: #00d4ff;
-                    background-color: rgba(0, 212, 255, 0.1);
-                    transform: translateY(-2px);
-                }
-
-                .nav-link:hover::after {
-                    content: '';
-                    position: absolute;
-                    bottom: -2px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 80%;
-                    height: 2px;
-                    background: linear-gradient(45deg, #00d4ff, #0099cc);
-                    border-radius: 1px;
-                }
-
-                .nav-icon {
-                    height: 30px;
-                    width: auto;
-                    transition: all 0.3s ease;
-                }
-
-                .nav-icon:hover {
-                    transform: scale(1.1);
-                    filter: brightness(1.2);
-                }
-
-                .nav-join-us {
-                    display: flex;
-                    align-items: center;
-                    text-decoration: none;
-                    transition: all 0.3s ease;
-                }
-
-                .nav-join-us:hover {
-                    transform: translateY(-2px);
-                }
-
-                .nav-join-icon {
-                    height: 35px;
-                    width: auto;
-                    transition: all 0.3s ease;
-                }
-
-                .nav-join-icon:hover {
-                    transform: scale(1.05);
-                    filter: brightness(1.1);
-                }
-
-                .nav-right {
-                    flex: 1;
-                    display: flex;
-                    justify-content: flex-end;
-                }
-
-                .nav-user-type {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    background: rgba(0, 212, 255, 0.05);
-                    padding: 8px 16px;
-                    border-radius: 8px;
-                    border: 1px solid #333;
-                }
-
-                .user-type-label {
-                    color: #ccc;
-                    font-size: 0.9rem;
-                    font-weight: 500;
-                }
-
-                .ambassador-link {
-                    color: #00d4ff !important;
-                    font-weight: 600;
-                    padding: 6px 12px;
-                    border: 1px solid #00d4ff;
-                    border-radius: 6px;
-                    font-size: 0.9rem;
-                }
-
-                .ambassador-link:hover {
-                    background-color: #00d4ff;
-                    color: black !important;
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
-                }
-
-                .chapter-lead-link {
-                    color: #ff6b35 !important;
-                    font-weight: 600;
-                    padding: 6px 12px;
-                    border: 1px solid #ff6b35;
-                    border-radius: 6px;
-                    font-size: 0.9rem;
-                }
-
-                .chapter-lead-link:hover {
-                    background-color: #ff6b35;
-                    color: black !important;
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
-                }
-
-                .separator {
-                    color: #666;
-                    font-size: 0.8rem;
-                }
-
-                /* Mobile Responsive */
-                @media (max-width: 768px) {
-                    .nav-container {
-                        padding: 0 15px;
-                        flex-direction: column;
-                        height: auto;
-                        min-height: 70px;
-                        justify-content: center;
-                        gap: 10px;
-                    }
-
-                    .nav-left, .nav-center, .nav-right {
-                        flex: none;
-                    }
-
-                    .nav-links {
-                        gap: 15px;
-                    }
-
-                    .nav-link {
-                        font-size: 0.9rem;
-                        padding: 6px 12px;
-                    }
-
-                    .nav-user-type {
-                        gap: 8px;
-                        padding: 6px 12px;
-                    }
-
-                    .user-type-label {
-                        font-size: 0.8rem;
-                    }
-
-                    .ambassador-link, .chapter-lead-link {
-                        font-size: 0.8rem;
-                        padding: 4px 8px;
-                    }
-                }
-
-                @media (max-width: 480px) {
-                    .nav-brand {
-                        font-size: 1.4rem;
-                    }
-
-                    .nav-links {
-                        gap: 10px;
-                    }
-
-                    .nav-link {
-                        font-size: 0.8rem;
-                        padding: 4px 8px;
-                    }
-                }
-                "#}
-            </style>
         </nav>
     }
 }

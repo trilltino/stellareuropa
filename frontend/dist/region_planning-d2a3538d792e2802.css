@@ -1,0 +1,11 @@
+/* Region Planning Page */
+
+.region-planning-page {
+    min-height: 100vh;
+    width: 100%;
+    background: url('/background form.png') center/cover no-repeat fixed;
+    padding: 100px 0 60px 0;
+    margin: 0;
+}
+
+/* Uses scf_wizard.css for wizard styles */

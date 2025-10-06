@@ -2,7 +2,7 @@ use yew::prelude::*;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-// Common validation functions
+
 pub fn validate_email(email: &str) -> Option<String> {
     if email.is_empty() {
         return Some("Email is required".to_string());
@@ -44,7 +44,7 @@ pub fn validate_stellar_address(address: &str) -> Option<String> {
 
 pub fn validate_required(value: &str, field_name: &str) -> Option<String> {
     if value.trim().is_empty() {
-        return Some(format!("{} is required", field_name));
+        return Some(format!("{field_name} is required"));
     }
     None
 }
@@ -165,7 +165,7 @@ impl FormHandle {
 
 #[hook]
 pub fn use_form() -> FormHandle {
-    let fields = use_state(|| HashMap::new());
+    let fields = use_state(HashMap::new);
     let validators = Rc::new(HashMap::new());
 
     FormHandle {

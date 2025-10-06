@@ -79,9 +79,9 @@ pub fn wallet_input(props: &WalletInputProps) -> Html {
     };
 
     let help_text = match &*freighter.status {
-        FreighterStatus::Connected(key) => Some(format!("✅ Connected: {}...{}", &key[..8], &key[key.len()-8..])),
-        FreighterStatus::Error(error) => Some(format!("❌ {}", error)),
-        FreighterStatus::NotInstalled => Some("⚠️ Install Freighter extension from Chrome Web Store".to_string()),
+        FreighterStatus::Connected(key) => Some(format!("Connected: {}...{}", &key[..8], &key[key.len()-8..])),
+        FreighterStatus::Error(error) => Some(format!("Error: {error}")),
+        FreighterStatus::NotInstalled => Some("Install Freighter extension from Chrome Web Store".to_string()),
         _ => props.help_text.clone().or_else(|| {
             Some("Enter your Stellar public key (starts with G) or connect via Freighter".to_string())
         }),

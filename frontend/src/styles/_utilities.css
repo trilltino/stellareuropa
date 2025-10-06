@@ -1,0 +1,357 @@
+/* ==========================================================================
+   UTILITIES - Shared utility classes and common patterns
+   ========================================================================== */
+
+/* Background Patterns
+   ========================================================================== */
+
+.bg-form-overlay {
+    background: url('/background form.png') center/cover no-repeat fixed;
+}
+
+.bg-dark-portal {
+    background: #0a0a0a;
+}
+
+.bg-landing {
+    background: url('/landing_page.webp') center/cover no-repeat fixed;
+}
+
+/* Gradients (CSS Variables)
+   ========================================================================== */
+
+:root {
+    /* Primary Gradients */
+    --gradient-primary: linear-gradient(45deg, #FFDA00, #00d4ff);
+    --gradient-primary-alt: linear-gradient(135deg, #00d4ff, #0099cc);
+    --gradient-secondary: linear-gradient(135deg, #ff6b35, #f44336);
+
+    /* Brand Colors */
+    --color-stellar-blue: #00d4ff;
+    --color-stellar-yellow: #FFDA00;
+    --color-stellar-orange: #ff6b35;
+
+    /* Extended Palette */
+    --color-xf-blue: #4a9eff;
+    --color-xf-red: #ff4444;
+    --color-freighter: #6200ea;
+
+    /* Semantic Colors */
+    --color-success: #22c55e;
+    --color-error: #ef4444;
+    --color-warning: #ff9800;
+
+    /* Neutrals */
+    --color-black: #0a0a0a;
+    --color-dark-1: #1a1a1a;
+    --color-dark-2: #333;
+    --color-gray-light: #888;
+    --color-gray-lighter: #ccc;
+    --color-white: #ffffff;
+}
+
+/* Glassmorphism Effects
+   ========================================================================== */
+
+.glass-light {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.glass-dark {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-form {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Loading Spinners
+   ========================================================================== */
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(0, 212, 255, 0.2);
+    border-top-color: var(--color-stellar-blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.spinner-small {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(0, 212, 255, 0.2);
+    border-top-color: var(--color-stellar-blue);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+.spinner-large {
+    width: 80px;
+    height: 80px;
+    border: 6px solid rgba(0, 212, 255, 0.2);
+    border-top-color: var(--color-stellar-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+}
+
+/* Typography Utilities
+   ========================================================================== */
+
+.text-schabo {
+    font-family: 'SCHABO Condensed', sans-serif;
+    text-transform: uppercase;
+}
+
+.text-lora {
+    font-family: 'Lora', serif;
+    font-style: italic;
+}
+
+.text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Button Utilities
+   ========================================================================== */
+
+.btn-gradient {
+    background: var(--gradient-primary-alt);
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 212, 255, 0.4);
+}
+
+.btn-gradient:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--color-stellar-blue);
+    color: var(--color-stellar-blue);
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+    background: var(--color-stellar-blue);
+    color: white;
+}
+
+.btn-ghost {
+    background: transparent;
+    border: none;
+    color: var(--color-stellar-blue);
+    padding: 12px 28px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-ghost:hover {
+    background: rgba(0, 212, 255, 0.1);
+}
+
+/* Card Utilities
+   ========================================================================== */
+
+.card-glass-light {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+.card-glass-dark {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.card-hover {
+    transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+}
+
+/* Spacing Utilities
+   ========================================================================== */
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+.mb-4 { margin-bottom: 2rem; }
+
+.p-1 { padding: 0.5rem; }
+.p-2 { padding: 1rem; }
+.p-3 { padding: 1.5rem; }
+.p-4 { padding: 2rem; }
+
+/* Alert/Message Utilities
+   ========================================================================== */
+
+.alert {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border-color: #ffeeba;
+    color: #856404;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+    color: #0c5460;
+}
+
+.alert a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.alert-link-container {
+    margin-top: 0.5rem;
+}
+
+/* Layout Utilities
+   ========================================================================== */
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Visibility Utilities
+   ========================================================================== */
+
+.hidden {
+    display: none;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Responsive Utilities
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .grid-2,
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
+}

@@ -18,7 +18,7 @@ pub enum StrategicFocusArea {
     DeveloperGrowth,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct KPIEstimates {
     pub monthly_active_ambassadors: Option<u32>,
     pub monthly_active_accounts: Option<u32>,
@@ -26,6 +26,31 @@ pub struct KPIEstimates {
     pub content_produced: Option<u32>,
     pub expected_attendance: Option<u32>,
     pub social_growth_target: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct PostEventReport {
+    pub actual_attendance: Option<u32>,
+    pub social_traction: Option<String>,
+    pub content_created: Option<String>,
+    pub active_developers_summary: Option<String>,
+    pub qualitative_feedback: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct EventCosts {
+    pub sponsorship_cost: Option<f64>,
+    pub travel_cost: Option<f64>,
+    pub awards_cost: Option<f64>,
+    pub other_costs: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct EventEvaluation {
+    pub project_submissions: Option<u32>,
+    pub promotion_reach: Option<String>,
+    pub developer_integration: Option<String>,
+    pub host_summary: Option<String>,
 }
 
 impl std::fmt::Display for EventType {
@@ -52,6 +77,31 @@ impl std::fmt::Display for StrategicFocusArea {
     }
 }
 
+impl From<&str> for EventType {
+    fn from(s: &str) -> Self {
+        match s {
+            "Workshop" => EventType::Workshop,
+            "Meetup" => EventType::Meetup,
+            "Conference" => EventType::Conference,
+            "Hackathon" => EventType::Hackathon,
+            _ => EventType::Community,
+        }
+    }
+}
+
+impl From<&str> for StrategicFocusArea {
+    fn from(s: &str) -> Self {
+        match s {
+            "Community Participation" => StrategicFocusArea::CommunityParticipation,
+            "On-Chain Activity" => StrategicFocusArea::OnChainActivity,
+            "SCF Referrals" => StrategicFocusArea::SCFReferrals,
+            "Ecosystem Collaboration" => StrategicFocusArea::EcosystemCollaboration,
+            "Developer Growth" => StrategicFocusArea::DeveloperGrowth,
+            _ => StrategicFocusArea::CommunityParticipation, // Default
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct EventRequest {
     pub title: String,
@@ -70,6 +120,11 @@ pub struct EventRequest {
     pub quarterly_goals: String,
     pub strategic_purpose: String,
     pub success_metrics: Option<String>,
+    // Post-Event Reporting (optional - to be filled after event)
+    pub post_event_report: Option<PostEventReport>,
+    pub event_costs: Option<EventCosts>,
+    pub event_evaluation: Option<EventEvaluation>,
+    pub event_images: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -93,6 +148,11 @@ pub struct EventResponse {
     pub quarterly_goals: String,
     pub strategic_purpose: String,
     pub success_metrics: Option<String>,
+    // Post-Event Reporting
+    pub post_event_report: Option<PostEventReport>,
+    pub event_costs: Option<EventCosts>,
+    pub event_evaluation: Option<EventEvaluation>,
+    pub event_images: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

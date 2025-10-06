@@ -58,9 +58,9 @@ pub fn button(props: &ButtonProps) -> Html {
         "ui-button",
         variant_class,
         size_class,
-        props.disabled.then(|| "ui-button--disabled"),
-        props.loading.then(|| "ui-button--loading"),
-        props.full_width.then(|| "ui-button--full-width"),
+        props.disabled.then_some("ui-button--disabled"),
+        props.loading.then_some("ui-button--loading"),
+        props.full_width.then_some("ui-button--full-width"),
         props.class.clone()
     );
 

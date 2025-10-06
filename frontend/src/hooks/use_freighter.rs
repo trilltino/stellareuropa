@@ -6,7 +6,7 @@ pub enum FreighterStatus {
     NotInstalled,
     Disconnected,
     Connecting,
-    Connected(String), // public key
+    Connected(String),
     Error(String),
 }
 
@@ -131,7 +131,6 @@ async fn connect_to_freighter() -> Result<String, String> {
             .map_err(|_| "User denied wallet access or Freighter connection failed")?;
     }
 
-    // Now get the public key
     let get_public_key = js_sys::Reflect::get(&freighter, &JsValue::from_str("getPublicKey"))
         .map_err(|_| "Freighter getPublicKey method not found")?;
 

@@ -1,18 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
-<script type="module">
-import init, * as bindings from '/frontend-e1bb277f627cfb40.js';
-const wasm = await init({ module_or_path: '/frontend-e1bb277f627cfb40_bg.wasm' });
-
-
-window.wasmBindings = bindings;
-
-
-dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
-
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stellar Europe - Building the Future of Blockchain</title>
@@ -21,12 +9,52 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
+    <!-- Stellar Freighter API CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-freighter-api/4.1.0/index.min.js"></script>
+
     <!-- Trunk Assets - Copy files to dist -->
     
+    
+    
+    
+    
+    
+    
+
+    <!-- XF Incubator Assets -->
+    
+    
+    
+    
+
+    <!-- Event Photos -->
+    
+
+    <!-- Mission Photos -->
+    
+
+    <!-- Form Background -->
+    
+
+    <!-- Wallet Assets -->
     
 
     <!-- Global Styles -->
     <style>
+        @font-face {
+            font-family: 'SCHABO Condensed';
+            font-style: normal;
+            font-weight: normal;
+            src: local('SCHABO Condensed'), url('/SCHABO-Condensed.woff') format('woff');
+        }
+
+        @font-face {
+            font-family: 'Lora';
+            font-style: normal;
+            font-weight: normal;
+            src: local('Lora'), url('/Lora-Regular.ttf') format('truetype');
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -40,7 +68,8 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
         }
 
         body {
-            background: url('/landing_page.webp') top center/contain no-repeat;
+            background-color: #000000;
+            background: url('/landing_page.webp') top center/cover no-repeat;
             background-attachment: scroll;
             min-height: 6538px;
             color: white;
@@ -55,33 +84,69 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
         .hero-section {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 80vh;
+            justify-content: flex-start;
+            min-height: 100vh;
             text-align: center;
-            padding: 40px 20px;
+            padding: 120px 20px 40px 20px;
+            position: relative;
         }
 
         .hero-content {
-            max-width: 800px;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 400px;
+            position: relative;
+            z-index: 10;
         }
 
         .hero-title {
-            font-family: 'SCHABO', sans-serif;
-            font-size: 4rem;
-            font-weight: bold;
+            font-family: 'SCHABO Condensed', sans-serif;
+            font-size: 6rem;
+            font-weight: normal;
             margin-bottom: 20px;
             color: white;
             line-height: 1.1;
             text-align: center;
+            min-height: 6.6rem;
+            letter-spacing: -0.02em;
             text-transform: uppercase;
         }
 
+        .rotating-text {
+            display: inline-block;
+            animation: fadeInOut 3s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            90% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
         .hero-subtitle {
-            font-size: 1.5rem;
-            color: #ccc;
-            margin-bottom: 40px;
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            font-weight: normal;
+            font-style: italic;
+            color: white;
+            margin-bottom: 0;
             line-height: 1.5;
+            text-align: center;
         }
 
         .cta-button {
@@ -101,17 +166,245 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(255, 218, 0, 0.4);
         }
+
+        /* Global page layout styles */
+        .page-layout {
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        .page-content {
+            width: 100%;
+            min-height: calc(100vh - 70px);
+            padding-top: 70px;
+        }
+
+        /* Ensure all pages inherit the background */
+        #app {
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* Event Slideshow */
+        .event-slideshow {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            margin-top: 0;
+            padding: 60px 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            z-index: 1;
+        }
+
+        .slideshow-title {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            font-style: italic;
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 0 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .slideshow-track {
+            display: flex;
+            gap: 30px;
+            animation: scroll 60s linear infinite;
+            width: fit-content;
+        }
+
+        .slideshow-image {
+            height: 250px;
+            width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .slideshow-image:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+
+        @media (max-width: 768px) {
+            .slideshow-image {
+                height: 180px;
+                width: 300px;
+            }
+
+            .event-slideshow {
+                margin-top: 40px;
+                padding: 30px 0;
+            }
+        }
+
+        /* Mission Section */
+        .mission-section {
+            padding: 80px 20px;
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        .mission-title {
+            font-family: 'SCHABO Condensed', sans-serif;
+            font-size: 6rem;
+            font-weight: normal;
+            color: white;
+            line-height: 1.1;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            margin: 0 0 40px 0;
+        }
+
+        .mission-description {
+            font-family: 'Lora', serif;
+            font-size: 1.5rem;
+            font-style: italic;
+            color: white;
+            max-width: 900px;
+            margin: 0 auto;
+            line-height: 1.8;
+            letter-spacing: -0.02em;
+        }
+
+        .mission-photos {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 1000px;
+            margin: 60px auto 0;
+            padding: 0 20px;
+        }
+
+        .mission-photo {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .mission-photo:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .mission-title {
+                font-size: 3rem;
+            }
+
+            .mission-description {
+                font-size: 1.2rem;
+            }
+
+            .mission-photos {
+                gap: 15px;
+            }
+
+            .mission-photo {
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .mission-photos {
+                grid-template-columns: 1fr;
+            }
+
+            .mission-photo {
+                height: 200px;
+            }
+        }
     </style>
 
-    <!-- Page-specific CSS -->
-    <link rel="stylesheet" href="/signuppage-1036733414813bd3.css" integrity="sha384-q1c/wcV/weKhLeTfggzoqwz7WWaSCnrcmP23n4gLP+gluRjVre+q+z/p7MFwGPDP"/>
+    <!-- Component Styles -->
+    <link rel="stylesheet" href="/components-3a4379c7736867a0.css" integrity="sha384-wUzWZkP6Av3/a58EohP0CgTIRQ9uZENNilqfvtDy7HBpslOIrHvxxp4AMXsV5yra"/>
+    <link rel="stylesheet" href="/navbar-88925c3558625830.css" integrity="sha384-bTp2jzc2C9eD1QL0cbSFYPcVRnKFCwp94CyizJSnjnvfZSCKPs81J1fIYlQEf5bl"/>
+    <link rel="stylesheet" href="/newpages-d8f4a519a45c82e6.css" integrity="sha384-PwSEVS5LOaHAIYcaSa0bImxXuDW9My1qKFYWbdjBC6f4R6npbmEVBY7qyL8PTi34"/>
+    <link rel="stylesheet" href="/xf_incubator-457e354be5a7d6a8.css" integrity="sha384-DIHiHJe0vTxYzVHqdSPn9yVpW68U3gQoRybw/niDluaqUwwql/5kw2Ie9rCgn0ss"/>
+    <link rel="stylesheet" href="/scf_form-710927bf1fd28bb2.css" integrity="sha384-qyGv5/PsVHJJVQ7sTx0RLlP88Gj2EEPcGIyfPQt+QPOJON3UwUMUtcDHIXDHALz/"/>
+    <link rel="stylesheet" href="/scf_wizard-98d65003940c43d7.css" integrity="sha384-X6Vm2v9EZn3BSjQYSAEc2Mth+RDTZeaKE7kOpnE6R/Htk+EuQR+R04cyK5iS7/ES"/>
+    <link rel="stylesheet" href="/auth-3cbcede9149c5ab5.css" integrity="sha384-xUDFcJLW9csbBl+YRacL5USlHI5yFp8j0jw+LUdf58IQCJM4fY6zEr/iH8xMXM/P"/>
+    <link rel="stylesheet" href="/events-ee8e17a414576bea.css" integrity="sha384-7vxGWTgipKVDMjhmREWdIy+qNjy2JjUAwxtCHALsNQZzacNzZoL/WYLWD3I2Y5iV"/>
+    <link rel="stylesheet" href="/event_form-35ce00a63f78a907.css" integrity="sha384-/1loMFCrU24r7ilK++GLAK0lz2hCOOPOA5thHLUny9fNvMsMdURR74mZWMcNcWgP"/>
+    <link rel="stylesheet" href="/region_planning-d2a3538d792e2802.css" integrity="sha384-6zZVoy5vLqlyTsWFd4gudA1VYXSrMErban4qKFWNEInJ/6PQ7yI2whvjq7KRmdvQ"/>
 
-    <!-- Link trunk assets -->
-
-<link rel="modulepreload" href="/frontend-e1bb277f627cfb40.js" crossorigin="anonymous" integrity="sha384-pjCTmGKvRXK2PZ7wfxawVkintCniNzCwus0idFM/5frHmqyC65x2muOY1s8A//kD"><link rel="preload" href="/frontend-e1bb277f627cfb40_bg.wasm" crossorigin="anonymous" integrity="sha384-D50ZfhhlwCEAo0nRjd2Tdg8+OfYR/Ivtl7e9q4BlzPr1MUtB9KnFpV+4Ieithy2t" as="fetch" type="application/wasm"><link rel="modulepreload" href="/frontend-fbc120eef85fea11.js" crossorigin="anonymous" integrity="sha384-8TmRtVw/ToZ+fTiobijWPnGMvCROg0T/4OZsyYQin0q8R/WRZc5e+oON5ubyb1xV"><link rel="preload" href="/frontend-fbc120eef85fea11_bg.wasm" crossorigin="anonymous" integrity="sha384-bOs55qVeJpnBXqCWr5Rq0ITi/cLwbVBIQeolsvNCs/m9ymRn6pNYrkRHytvywZgI" as="fetch" type="application/wasm"></head>
+    <!-- Unified Page CSS -->
+    <link rel="stylesheet" href="/pages-1ec24dbac0aa63c4.css" integrity="sha384-uNIBpKSpaGMvW4WSTNPJvWuSGrH1Yrc+soK4WGuqsoYLpqD8wSEDB76x2x62/bzn"/>
+<link rel="modulepreload" href="/frontend-11d42b6f76260618.js" crossorigin="anonymous" integrity="sha384-TFV7yMHcxqeUQYXk14iXidmJwD1JvHTk8ow0E5FRoqHfYGfvB8QMelkz2LLV/poE"><link rel="preload" href="/frontend-11d42b6f76260618_bg.wasm" crossorigin="anonymous" integrity="sha384-PqCUeq5W9+SKcgoc6kLXDj5tbdFNMjkWjcQ8c2lQ3HWvILE8VkXvRSSVfe8GRAfD" as="fetch" type="application/wasm"></head>
 <body>
     <div id="app"></div>
-<script>"use strict";
+
+    <!-- Freighter Detection Script -->
+    <script type="module">
+        // Freighter detection with retry mechanism
+        window.addEventListener('load', async () => {
+            let retryCount = 0;
+            const maxRetries = 5;
+
+            async function detectFreighter() {
+                if (typeof window.freighterApi !== 'undefined') {
+                    try {
+                        const result = await window.freighterApi.isConnected();
+                        if (result && result.isConnected) {
+                            window.freighterReady = true;
+                            console.log('✅ Freighter API detected and ready');
+                            console.log('   Available methods:', Object.keys(window.freighterApi));
+                            return true;
+                        }
+                    } catch (error) {
+                        // Freighter exists but not connected yet
+                        console.log('⚠️  Freighter detected but not connected');
+                        window.freighterReady = false;
+                        return true; // Still detected
+                    }
+                }
+                return false;
+            }
+
+            async function checkFreighter() {
+                const detected = await detectFreighter();
+                if (detected || retryCount++ >= maxRetries) {
+                    if (!detected) {
+                        console.log('ℹ️  Freighter wallet extension not detected');
+                        console.log('   Install from: https://freighter.app/');
+                    }
+                    return;
+                }
+                setTimeout(checkFreighter, 500);
+            }
+
+            // Start detection after a brief delay
+            setTimeout(checkFreighter, 100);
+        });
+    </script>
+
+<script type="module">
+import init, * as bindings from '/frontend-11d42b6f76260618.js';
+const wasm = await init({ module_or_path: '/frontend-11d42b6f76260618_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script><script>"use strict";
 
 (function () {
 
@@ -240,16 +533,5 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
     new Client(url).start();
 
 })()
-</script>
-<script type="module">
-import init, * as bindings from '/frontend-fbc120eef85fea11.js';
-const wasm = await init({ module_or_path: '/frontend-fbc120eef85fea11_bg.wasm' });
-
-
-window.wasmBindings = bindings;
-
-
-dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
-
 </script></body>
 </html>

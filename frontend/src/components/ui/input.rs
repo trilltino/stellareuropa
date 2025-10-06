@@ -40,7 +40,7 @@ pub fn input(props: &InputProps) -> Html {
     let input_class = classes!(
         "ui-input",
         props.error.as_ref().map(|_| "ui-input--error"),
-        props.disabled.then(|| "ui-input--disabled"),
+        props.disabled.then_some("ui-input--disabled"),
         props.class.clone()
     );
 

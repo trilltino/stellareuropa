@@ -20,8 +20,8 @@ pub struct CardProps {
 pub fn card(props: &CardProps) -> Html {
     let card_class = classes!(
         "ui-card",
-        props.elevated.then(|| "ui-card--elevated"),
-        props.bordered.then(|| "ui-card--bordered"),
+        props.elevated.then_some("ui-card--elevated"),
+        props.bordered.then_some("ui-card--bordered"),
         props.class.clone()
     );
 

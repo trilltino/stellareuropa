@@ -42,8 +42,8 @@ pub fn textarea(props: &TextAreaProps) -> Html {
     let textarea_class = classes!(
         "ui-textarea",
         props.error.as_ref().map(|_| "ui-textarea--error"),
-        props.disabled.then(|| "ui-textarea--disabled"),
-        (!props.resize).then(|| "ui-textarea--no-resize"),
+        props.disabled.then_some("ui-textarea--disabled"),
+        (!props.resize).then_some("ui-textarea--no-resize"),
         props.class.clone()
     );
 

@@ -19,7 +19,7 @@ pub struct FormSectionProps {
 pub fn form_section(props: &FormSectionProps) -> Html {
     let section_class = classes!(
         "form-section",
-        props.bordered.then(|| "form-section--bordered"),
+        props.bordered.then_some("form-section--bordered"),
         props.class.clone()
     );
 

@@ -1,15 +1,13 @@
-pub mod homepage;
-pub mod signuppage;
-pub mod aboutpage;
-pub mod chapterspage;
-pub mod partnershippage;
-pub mod eventform;
-pub mod eventoutput;
+// Form pages (includes authentication forms: login, signup)
+pub mod forms;
 
-pub use homepage::*;
-pub use signuppage::*;
-pub use aboutpage::*;
-pub use chapterspage::*;
-pub use partnershippage::*;
-pub use eventform::*;
-pub use eventoutput::*;
+// Content pages
+pub mod content;
+
+// Feature-specific pages
+pub mod features;
+
+// Re-export all page components for backwards compatibility
+pub use forms::*;
+pub use content::*;
+pub use features::*;
